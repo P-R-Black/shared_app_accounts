@@ -15,6 +15,3 @@ def create_seed_data():
     )
 
     return user1,user2
-
-
-d
