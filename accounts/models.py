@@ -30,20 +30,25 @@ class ActiveUserManager(models.Manager):
 
 class AllUserManager(models.Manager):
     def get_queryset(self):
-        return SoftDeleteQuerySet(self.model, using=self._db)
+        return super().get_queryset()
 
-class SoftDeleteQuerySet(models.QuerySet):
-    def delete(self):
-        for obj in self:
-            obj.soft_delete()
+# class AllUserManager(models.Manager):
+#     def get_queryset(self):
+#         return SoftDeleteQuerySet(self.model, using=self._db)
+#
+# class SoftDeleteQuerySet(models.QuerySet):
+#     def delete(self):
+#         for obj in self:
+#             obj.soft_delete()
 
-class CustomPopUpAccountManager(BaseUserManager, ActiveUserManager):
+class CustomPopUpAccountManager(ActiveUserManager, BaseUserManager):
 
     # def get_queryset(self):
     #     return super().get_queryset().filter(deleted_at__isnull=True)
 
     def get_by_natural_key(self, email):
-        return self.get(email=email)
+        email = self.normalize_email(email)
+        return self.get(email__iexact=email)
 
     def create_superuser(self, email, password=None, **other_fields):
 
@@ -119,8 +124,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.soft_delete()
 
     def restore(self):
-        self.is_active = True
         self.deleted_at = None
+        self.is_active = False
         self.save()
 
     @property
